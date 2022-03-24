@@ -1,10 +1,12 @@
 package ch.epfl.dias.cs422.rel.early.volcano
 
 import ch.epfl.dias.cs422.helpers.builder.skeleton
-import ch.epfl.dias.cs422.helpers.rel.RelOperator.Tuple
-import org.apache.calcite.rel.RelCollation
+import ch.epfl.dias.cs422.helpers.rel.RelOperator.{Elem, Tuple}
+import org.apache.calcite.rel.{RelCollation, RelFieldCollation}
 
+import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters._
+import scala.util.control.Breaks.{break, breakable}
 
 /**
   * @inheritdoc
@@ -25,18 +27,71 @@ class Sort protected (
     * sort keys and direction
     */
 
-  /**
-    * @inheritdoc
-    */
-  override def open(): Unit = ???
+  var tupleList : ListBuffer[Tuple] = ListBuffer[Tuple]()
+  //var resultTupleList : ListBuffer[Tuple] = ListBuffer[Tuple]()
+  var i : Int = -1
 
   /**
     * @inheritdoc
     */
-  override def next(): Option[Tuple] = ???
+  override def open(): Unit = {
+    input.open()
+
+    var t = input.next()
+    while (t.nonEmpty){
+      tupleList += t.get
+      t = input.next()
+    }
+    tupleList = tupleList.sortWith(sortRule)
+    if (offset.nonEmpty) {
+//    tupleList.sortWith(sortRule).slice(offset.get, offset.get + fetch.get)
+    tupleList = tupleList.drop(offset.get)
+
+    if (fetch.nonEmpty)
+      tupleList = tupleList.take(fetch.get)
+    }
+  }
 
   /**
     * @inheritdoc
     */
-  override def close(): Unit = ???
+  override def next(): Option[Tuple] = {
+
+    i = i + 1
+    if (i < tupleList.size) {
+      Option.apply(tupleList(i))
+    } else{
+      Option.empty
+    }
+
+  }
+
+  /**
+    * @inheritdoc
+    */
+  override def close(): Unit = {
+    input.close()
+  }
+
+  def sortRule(t1 : Tuple, t2 : Tuple) : Boolean = {
+
+    for (i <- collation.getFieldCollations.asScala.toList) {
+      var index = i.getFieldIndex
+      breakable {
+        if (t1(index).equals(t2(index))) {
+          break
+        }else {
+          if (i.getDirection.isDescending){
+            return RelFieldCollation.compare(t1(index).asInstanceOf[Comparable[Elem]], t2(index).asInstanceOf[Comparable[Elem]],
+                    RelFieldCollation.NullDirection.LAST.nullComparison) > 0
+          }else {
+            return RelFieldCollation.compare(t1(index).asInstanceOf[Comparable[Elem]], t2(index).asInstanceOf[Comparable[Elem]],
+              RelFieldCollation.NullDirection.LAST.nullComparison) < 0
+          }
+        }
+      }
+    }
+
+    false
+  }
 }

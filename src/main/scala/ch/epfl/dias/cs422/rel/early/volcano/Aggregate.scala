@@ -1,10 +1,11 @@
 package ch.epfl.dias.cs422.rel.early.volcano
 
 import ch.epfl.dias.cs422.helpers.builder.skeleton
-import ch.epfl.dias.cs422.helpers.rel.RelOperator.Tuple
+import ch.epfl.dias.cs422.helpers.rel.RelOperator.{Elem, Tuple}
 import ch.epfl.dias.cs422.helpers.rex.AggregateCall
 import org.apache.calcite.util.ImmutableBitSet
 
+import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters._
 
 /**
@@ -28,18 +29,76 @@ class Aggregate protected (
     * groupMapReduce
     */
 
-  /**
-    * @inheritdoc
-    */
-  override def open(): Unit = ???
+  var tupleList : ListBuffer[Tuple] = ListBuffer[Tuple]()
+  var resultTuples : ListBuffer[Tuple] = ListBuffer[Tuple]()
+  val fieldIndices : List[Integer] = groupSet.asScala.toList
+  var i : Int = -1
 
   /**
     * @inheritdoc
     */
-  override def next(): Option[Tuple] = ???
+  override def open(): Unit = {
+    input.open()
+
+    // collection of the tuples from input
+    var t = input.next()
+    while (t.nonEmpty){
+      tupleList = tupleList += t.get
+      t = input.next()
+    }
+
+    // cases where groupSet is empty
+    if (groupSet.isEmpty){
+      var tmpTuple = ListBuffer[Elem]()
+      if (tupleList.isEmpty){
+        for (aggCall <- aggCalls) {
+          tmpTuple = tmpTuple :+ aggCall.emptyValue
+        }
+      }else {
+        for (aggCall <- aggCalls) {
+          tmpTuple = tmpTuple :+ tupleList.map(t => aggCall.getArgument(t)).reduce((x, y) => aggCall.reduce(x, y))
+        }
+      }
+      resultTuples += tmpTuple.toIndexedSeq
+      return
+    }
+
+    // grouping of tuples by the groupSet key
+    val grouped = tupleList.groupBy(t => {
+      var key = ListBuffer[Elem]()
+      for (i <- fieldIndices){
+        key = key += t(i)
+      }
+      key.toList
+    })
+
+    for (kv <- grouped){
+      var tmpTuple  = ListBuffer[Elem]()
+      tmpTuple = tmpTuple ++ kv._1
+      for (aggCall <- aggCalls) {
+        tmpTuple = tmpTuple :+ kv._2.map(t => aggCall.getArgument(t)).reduce((x, y) => aggCall.reduce(x ,y))
+      }
+      resultTuples += tmpTuple.toIndexedSeq
+    }
+  }
 
   /**
     * @inheritdoc
     */
-  override def close(): Unit = ???
+  override def next(): Option[Tuple] = {
+
+    i = i + 1
+    if (i < resultTuples.size) {
+      Option.apply(resultTuples(i))
+    } else {
+      Option.empty
+    }
+  }
+
+  /**
+    * @inheritdoc
+    */
+  override def close(): Unit = {
+    input.close()
+  }
 }

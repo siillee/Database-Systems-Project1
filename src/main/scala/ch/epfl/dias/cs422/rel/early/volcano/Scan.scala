@@ -2,7 +2,7 @@ package ch.epfl.dias.cs422.rel.early.volcano
 
 import ch.epfl.dias.cs422.helpers.builder.skeleton
 import ch.epfl.dias.cs422.helpers.rel.RelOperator.Tuple
-import ch.epfl.dias.cs422.helpers.store.{ScannableTable, Store}
+import ch.epfl.dias.cs422.helpers.store.{RowStore, ScannableTable, Store}
 import org.apache.calcite.plan.{RelOptCluster, RelOptTable, RelTraitSet}
 
 import scala.jdk.CollectionConverters._
@@ -28,18 +28,30 @@ class Scan protected (
 
   private var prog = getRowType.getFieldList.asScala.map(_ => 0)
 
+  private var scannableRowStore : RowStore = null
+  private var i : Int = -1
   /**
     * @inheritdoc
     */
-  override def open(): Unit = ???
+  override def open(): Unit = {
+
+    scannableRowStore = scannable.asInstanceOf[RowStore]
+  }
 
   /**
     * @inheritdoc
     */
-  override def next(): Option[Tuple] = ???
+  override def next(): Option[Tuple] = {
+    i = i + 1
+    if (i >= scannableRowStore.getRowCount)
+      return Option.empty[Tuple]
+    Option.apply(scannableRowStore.getRow(i))
+  }
 
   /**
     * @inheritdoc
     */
-  override def close(): Unit = ???
+  override def close(): Unit = {
+
+  }
 }

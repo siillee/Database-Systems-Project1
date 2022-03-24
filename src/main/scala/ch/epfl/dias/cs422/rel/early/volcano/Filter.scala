@@ -29,15 +29,29 @@ class Filter protected (
   /**
     * @inheritdoc
     */
-  override def open(): Unit = ???
+  override def open(): Unit = {
+
+    input.open()
+  }
 
   /**
     * @inheritdoc
     */
-  override def next(): Option[Tuple] = ???
+  override def next(): Option[Tuple] = {
+
+    var t : Option[Tuple] = null
+    while (true) {
+      t = input.next
+      if (t.isEmpty || predicate(t.get))
+        return t
+    }
+    t
+  }
 
   /**
     * @inheritdoc
     */
-  override def close(): Unit = ???
+  override def close(): Unit = {
+    input.close()
+  }
 }

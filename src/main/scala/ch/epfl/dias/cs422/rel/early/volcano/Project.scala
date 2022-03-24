@@ -31,15 +31,25 @@ class Project protected (
   /**
     * @inheritdoc
     */
-  override def open(): Unit = ???
+  override def open(): Unit = {
+    input.open()
+  }
 
   /**
     * @inheritdoc
     */
-  override def next(): Option[Tuple] = ???
+  override def next(): Option[Tuple] = {
+
+    val t = input.next()
+    if (t.isEmpty)
+      return Option.empty
+    Option.apply(evaluator(t.get))
+  }
 
   /**
     * @inheritdoc
     */
-  override def close(): Unit = ???
+  override def close(): Unit = {
+    input.close()
+  }
 }

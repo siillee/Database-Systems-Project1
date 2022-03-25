@@ -22,15 +22,27 @@ class Drop protected(
   /**
     * @inheritdoc
     */
-  override def open(): Unit = ???
+  override def open(): Unit = {
+    input.open()
+  }
 
   /**
     * @inheritdoc
     */
-  override def next(): Option[Tuple] = ???
+  override def next(): Option[Tuple] = {
+
+    val t = input.next()
+    if (t.nonEmpty) {
+      Option.apply(t.get.value)
+    }else {
+      Option.empty
+    }
+  }
 
   /**
     * @inheritdoc
     */
-  override def close(): Unit = ???
+  override def close(): Unit = {
+    input.close()
+  }
 }

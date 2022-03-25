@@ -28,7 +28,6 @@ class Sort protected (
     */
 
   var tupleList : ListBuffer[Tuple] = ListBuffer[Tuple]()
-  //var resultTupleList : ListBuffer[Tuple] = ListBuffer[Tuple]()
   var i : Int = -1
 
   /**
@@ -44,7 +43,6 @@ class Sort protected (
     }
     tupleList = tupleList.sortWith(sortRule)
     if (offset.nonEmpty) {
-//    tupleList.sortWith(sortRule).slice(offset.get, offset.get + fetch.get)
     tupleList = tupleList.drop(offset.get)
 
     if (fetch.nonEmpty)

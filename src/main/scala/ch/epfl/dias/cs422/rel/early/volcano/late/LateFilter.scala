@@ -29,15 +29,28 @@ class LateFilter protected (
   /**
     * @inheritdoc
     */
-  override def open(): Unit = ???
+  override def open(): Unit = {
+    input.open()
+  }
 
   /**
     * @inheritdoc
     */
-  override def next(): Option[LateTuple] = ???
+  override def next(): Option[LateTuple] = {
+
+    var t : Option[LateTuple] = null
+    while (true) {
+      t = input.next
+      if (t.isEmpty || predicate(t.get.value))
+        return t
+    }
+    t
+  }
 
   /**
     * @inheritdoc
     */
-  override def close(): Unit = ???
+  override def close(): Unit = {
+    input.close()
+  }
 }

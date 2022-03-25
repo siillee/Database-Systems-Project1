@@ -36,15 +36,28 @@ class LateProject protected (
   /**
     * @inheritdoc
     */
-  override def open(): Unit = ???
+  override def open(): Unit = {
+    input.open()
+  }
 
   /**
     * @inheritdoc
     */
-  override def next(): Option[LateTuple] = ???
+  override def next(): Option[LateTuple] = {
+
+    val t = input.next()
+    if (t.isEmpty)
+      return Option.empty
+    val vid = t.get.vid
+    val newTpl = LateTuple(vid, evaluator(t.get.value))
+    Option.apply(newTpl)
+
+  }
 
   /**
     * @inheritdoc
     */
-  override def close(): Unit = ???
+  override def close(): Unit = {
+    input.close()
+  }
 }

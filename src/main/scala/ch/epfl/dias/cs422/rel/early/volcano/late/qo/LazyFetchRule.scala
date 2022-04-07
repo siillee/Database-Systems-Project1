@@ -1,10 +1,15 @@
 package ch.epfl.dias.cs422.rel.early.volcano.late.qo
 
-import ch.epfl.dias.cs422.helpers.builder.skeleton.logical.LogicalStitch
+import ch.epfl.dias.cs422.helpers.builder.skeleton.logical.{LogicalFetch, LogicalStitch}
 import ch.epfl.dias.cs422.helpers.qo.rules.skeleton.LazyFetchRuleSkeleton
+import ch.epfl.dias.cs422.helpers.store.late.LateStandaloneColumnStore
 import ch.epfl.dias.cs422.helpers.store.late.rel.late.volcano.LateColumnScan
 import org.apache.calcite.plan.{RelOptRuleCall, RelRule}
 import org.apache.calcite.rel.RelNode
+import org.apache.calcite.rel.logical.LogicalProject
+import org.apache.calcite.rex.RexNode
+
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 /**
   * RelRule (optimization rule) that finds an operator that stitches a new column
@@ -18,7 +23,21 @@ class LazyFetchRule protected (config: RelRule.Config)
   extends LazyFetchRuleSkeleton(
     config
   ) {
-  override def onMatchHelper(call: RelOptRuleCall): RelNode = ???
+  override def onMatchHelper(call: RelOptRuleCall): RelNode = {
+
+    val projects : java.util.List[RexNode] = null
+
+    val first = call.rel[RelNode](1)
+    val second = call.rel[LateColumnScan](2)
+
+//    first match {
+//      case project: LogicalProject =>
+//        projects = project.getProjects
+//      case _ =>
+//    }
+
+    LogicalFetch.create(first, second.getRowType, second.getColumn, Option.apply(projects), classOf[LogicalFetch])
+  }
 }
 
 object LazyFetchRule {

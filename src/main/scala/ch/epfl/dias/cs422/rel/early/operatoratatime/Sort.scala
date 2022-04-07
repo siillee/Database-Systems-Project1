@@ -1,10 +1,12 @@
 package ch.epfl.dias.cs422.rel.early.operatoratatime
 
 import ch.epfl.dias.cs422.helpers.builder.skeleton
-import ch.epfl.dias.cs422.helpers.rel.RelOperator.Column
-import org.apache.calcite.rel.RelCollation
+import ch.epfl.dias.cs422.helpers.rel.RelOperator.{Column, Elem, Tuple}
+import org.apache.calcite.rel.{RelCollation, RelFieldCollation}
 
+import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters._
+import scala.util.control.Breaks.{break, breakable}
 
 /**
   * @inheritdoc
@@ -28,5 +30,69 @@ class Sort protected (
   /**
    * @inheritdoc
    */
-  override def execute(): IndexedSeq[Column] = ???
+  override def execute(): IndexedSeq[Column] = {
+
+    var tupleList = ListBuffer[Tuple]()
+    val columns = input.execute()
+
+    // get tuples from columns
+    for (i <- columns(0).indices) {
+      breakable {
+        if (!columns.last(i).asInstanceOf[Boolean]) {
+          break
+        }
+        var t: Tuple = IndexedSeq[Elem]()
+        for (c <- columns) {
+          t = t :+ c(i)
+        }
+        tupleList = tupleList += t
+      }
+    }
+
+    // sort the tuples
+    tupleList = tupleList.sortWith(sortRule)
+    if (offset.nonEmpty) {
+      tupleList = tupleList.drop(offset.get)
+    }
+    if (fetch.nonEmpty) {
+        tupleList = tupleList.take(fetch.get)
+    }
+
+    // get columns from tuples
+    var resultColumns = ListBuffer[Column]()
+    for (i <- columns.indices){
+      resultColumns = resultColumns += IndexedSeq[Elem]()
+    }
+
+    for (t <- tupleList) {
+      for (i <- resultColumns.indices){
+        resultColumns(i) = resultColumns(i) :+ t(i)
+      }
+    }
+
+    resultColumns.toIndexedSeq
+
+  }
+
+  def sortRule(t1 : Tuple, t2 : Tuple) : Boolean = {
+
+    for (i <- collation.getFieldCollations.asScala.toList) {
+      val index = i.getFieldIndex
+      breakable {
+        if (t1(index).equals(t2(index))) {
+          break
+        }else {
+          if (i.getDirection.isDescending){
+            return RelFieldCollation.compare(t1(index).asInstanceOf[Comparable[Elem]], t2(index).asInstanceOf[Comparable[Elem]],
+              RelFieldCollation.NullDirection.LAST.nullComparison) > 0
+          }else {
+            return RelFieldCollation.compare(t1(index).asInstanceOf[Comparable[Elem]], t2(index).asInstanceOf[Comparable[Elem]],
+              RelFieldCollation.NullDirection.LAST.nullComparison) < 0
+          }
+        }
+      }
+    }
+
+    false
+  }
 }

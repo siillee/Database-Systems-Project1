@@ -35,5 +35,11 @@ class Filter protected (
   /**
     * @inheritdoc
     */
-  def execute(): IndexedSeq[HomogeneousColumn] = ???
+  def execute(): IndexedSeq[HomogeneousColumn] = {
+
+    var inputColumns = input.execute()
+    inputColumns = inputColumns.dropRight(1)
+
+    inputColumns :+ mappredicate(inputColumns).toIndexedSeq
+  }
 }

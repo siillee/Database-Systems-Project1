@@ -2,12 +2,13 @@ package ch.epfl.dias.cs422.rel.early.volcano.late
 
 import ch.epfl.dias.cs422.helpers.builder.skeleton
 import ch.epfl.dias.cs422.helpers.builder.skeleton.logical.LogicalFetch
-import ch.epfl.dias.cs422.helpers.rel.RelOperator.{LateTuple, Tuple}
+import ch.epfl.dias.cs422.helpers.rel.RelOperator.{Elem, LateTuple, Tuple}
 import ch.epfl.dias.cs422.helpers.rel.late.volcano.naive.Operator
 import ch.epfl.dias.cs422.helpers.store.late.LateStandaloneColumnStore
 import org.apache.calcite.rel.`type`.RelDataType
 import org.apache.calcite.rex.RexNode
 
+import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 class Fetch protected (
@@ -22,20 +23,63 @@ class Fetch protected (
   lazy val evaluator: Tuple => Tuple =
     eval(projects.get.asScala.toIndexedSeq, fetchType)
 
-  /**
-    * @inheritdoc
-    */
-  override def open(): Unit = ???
+  var tupleList : ListBuffer[LateTuple] = ListBuffer[LateTuple]()
+  var resultTuples : ListBuffer[LateTuple] = ListBuffer[LateTuple]()
+  var i : Int = -1
 
   /**
     * @inheritdoc
     */
-  override def next(): Option[LateTuple] = ???
+  override def open(): Unit = {
+    input.open()
+
+    var t = input.next()
+    while(t.nonEmpty) {
+      tupleList = tupleList += t.get
+      t = input.next()
+    }
+
+
+    var clmn = column.getColumn.map(c => IndexedSeq[Elem](c))
+
+    if (projects.nonEmpty) {
+      if (!projects.get.isEmpty){
+        clmn = clmn.map(c => evaluator(c))
+      }else {
+        resultTuples = tupleList
+        return
+      }
+    }
+
+    for (t <- tupleList) {
+      val elem = Option.apply(clmn(t.vid.toInt))
+      if (elem.nonEmpty) {
+        resultTuples = resultTuples += LateTuple(t.vid, t.value ++ elem.get)
+      }else {
+        resultTuples = resultTuples += t
+      }
+    }
+  }
 
   /**
     * @inheritdoc
     */
-  override def close(): Unit = ???
+  override def next(): Option[LateTuple] = {
+
+    i = i + 1
+    if (i < resultTuples.size) {
+      Option.apply(resultTuples(i))
+    } else {
+      Option.empty
+    }
+  }
+
+  /**
+    * @inheritdoc
+    */
+  override def close(): Unit = {
+    input.close()
+  }
 }
 
 object Fetch {

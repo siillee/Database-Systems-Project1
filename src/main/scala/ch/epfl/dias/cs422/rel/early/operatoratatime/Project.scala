@@ -5,6 +5,7 @@ import ch.epfl.dias.cs422.helpers.rel.RelOperator._
 import org.apache.calcite.rel.`type`.RelDataType
 import org.apache.calcite.rex.RexNode
 
+import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters._
 
 /**
@@ -29,8 +30,42 @@ class Project protected (
     eval(projects.asScala.toIndexedSeq, input.getRowType)
   }
 
+  var evaluatedTuples : ListBuffer[Tuple] = ListBuffer[Tuple]()
+  var resultColumns : ListBuffer[Column] = ListBuffer[Column]()
+
   /**
    * @inheritdoc
    */
-  def execute(): IndexedSeq[Column] = ???
+  def execute(): IndexedSeq[Column] = {
+
+    var columns = input.execute()
+    val selectVector = columns.last
+    columns = columns.dropRight(1)
+
+    if (columns.isEmpty || columns.head.isEmpty){
+      return (resultColumns :+ IndexedSeq[Column]()).toIndexedSeq
+    }
+
+    for (i <- columns.head.indices) {
+      var t: Tuple = IndexedSeq[Elem]()
+      for (c <- columns) {
+        t = t :+ c(i)
+      }
+      evaluatedTuples = evaluatedTuples += evaluator(t)
+    }
+
+    for (i <- evaluatedTuples.head.indices){
+      resultColumns = resultColumns += IndexedSeq[Elem]()
+    }
+
+    for (i <- resultColumns.indices){
+      for (t <- evaluatedTuples) {
+        resultColumns(i) = resultColumns(i) :+ t(i)
+      }
+    }
+
+    resultColumns = resultColumns :+ selectVector
+
+    resultColumns.toIndexedSeq
+  }
 }

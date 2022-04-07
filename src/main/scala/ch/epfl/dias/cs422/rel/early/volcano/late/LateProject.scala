@@ -48,8 +48,7 @@ class LateProject protected (
     val t = input.next()
     if (t.isEmpty)
       return Option.empty
-    val vid = t.get.vid
-    val newTpl = LateTuple(vid, evaluator(t.get.value))
+    val newTpl = LateTuple(t.get.vid, evaluator(t.get.value))
     Option.apply(newTpl)
 
   }

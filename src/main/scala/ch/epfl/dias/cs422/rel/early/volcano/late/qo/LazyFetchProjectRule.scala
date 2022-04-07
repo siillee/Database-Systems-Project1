@@ -1,11 +1,12 @@
 package ch.epfl.dias.cs422.rel.early.volcano.late.qo
 
-import ch.epfl.dias.cs422.helpers.builder.skeleton.logical.LogicalStitch
+import ch.epfl.dias.cs422.helpers.builder.skeleton.logical.{LogicalFetch, LogicalStitch}
 import ch.epfl.dias.cs422.helpers.qo.rules.skeleton.LazyFetchProjectRuleSkeleton
 import ch.epfl.dias.cs422.helpers.store.late.rel.late.volcano.LateColumnScan
 import org.apache.calcite.plan.{RelOptRuleCall, RelRule}
 import org.apache.calcite.rel.RelNode
 import org.apache.calcite.rel.logical.LogicalProject
+import org.apache.calcite.rex.RexNode
 
 /**
   * RelRule (optimization rule) that finds a reconstruct operator that stitches
@@ -21,7 +22,14 @@ class LazyFetchProjectRule protected (config: RelRule.Config)
     config
   ) {
 
-  override def onMatchHelper(call: RelOptRuleCall): RelNode = ???
+  override def onMatchHelper(call: RelOptRuleCall): RelNode = {
+
+    val first = call.rel[RelNode](1)
+    val second = call.rel[LogicalProject](2)
+    val third = call.rel[LateColumnScan](3)
+
+    LogicalFetch.create(first, third.getRowType, third.getColumn, Option.apply(second.getProjects), classOf[LogicalFetch])
+  }
 }
 
 object LazyFetchProjectRule {

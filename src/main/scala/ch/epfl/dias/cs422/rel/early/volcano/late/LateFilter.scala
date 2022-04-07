@@ -1,7 +1,7 @@
 package ch.epfl.dias.cs422.rel.early.volcano.late
 
 import ch.epfl.dias.cs422.helpers.builder.skeleton
-import ch.epfl.dias.cs422.helpers.rel.RelOperator.{LateTuple, Tuple}
+import ch.epfl.dias.cs422.helpers.rel.RelOperator.{LateTuple, NilLateTuple, Tuple}
 import org.apache.calcite.rex.RexNode
 
 /**
@@ -38,7 +38,7 @@ class LateFilter protected (
     */
   override def next(): Option[LateTuple] = {
 
-    var t : Option[LateTuple] = null
+    var t : Option[LateTuple] = NilLateTuple
     while (true) {
       t = input.next
       if (t.isEmpty || predicate(t.get.value))

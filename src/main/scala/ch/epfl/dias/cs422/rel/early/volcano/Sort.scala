@@ -43,11 +43,13 @@ class Sort protected (
     }
     tupleList = tupleList.sortWith(sortRule)
     if (offset.nonEmpty) {
-    tupleList = tupleList.drop(offset.get)
+      tupleList = tupleList.drop(offset.get)
+    }
 
-    if (fetch.nonEmpty)
+    if (fetch.nonEmpty) {
       tupleList = tupleList.take(fetch.get)
     }
+
   }
 
   /**
@@ -74,7 +76,7 @@ class Sort protected (
   def sortRule(t1 : Tuple, t2 : Tuple) : Boolean = {
 
     for (i <- collation.getFieldCollations.asScala.toList) {
-      var index = i.getFieldIndex
+      val index = i.getFieldIndex
       breakable {
         if (t1(index).equals(t2(index))) {
           break

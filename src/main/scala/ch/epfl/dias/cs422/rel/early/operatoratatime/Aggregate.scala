@@ -45,17 +45,16 @@ class Aggregate protected (
     val columns = input.execute()
 
     // get tuples from columns ; only the tuples which have TRUE in the selection vector
-
     for (i <- columns.head.indices) {
       breakable {
         if (!columns.last(i).asInstanceOf[Boolean]) {
           break
         }
-        var t: Tuple = IndexedSeq[Elem]()
+        var t = ListBuffer[Elem]()
         for (c <- columns) {
-          t = t :+ c(i)
+          t += c(i)
         }
-        tupleList = tupleList += t
+        tupleList += t.toIndexedSeq
       }
     }
 
@@ -97,24 +96,24 @@ class Aggregate protected (
       }
     }
 
-    var selectVector = IndexedSeq[Elem]()
+    var selectVector = ListBuffer[Elem]()
     for (t <- finalTupleList){
-      selectVector = selectVector :+ true
+      selectVector += true
     }
 
-
+    // initializing resultColumns
     for (i <- 0 until len){
-      resultColumns = resultColumns += IndexedSeq[Elem]()
+      resultColumns += IndexedSeq[Elem]()
     }
 
-
+    // get columns from tuples
     for (i <- resultColumns.indices){
       for (t <- finalTupleList) {
         resultColumns(i) = resultColumns(i) :+ t(i)
       }
     }
 
-    resultColumns = resultColumns :+ selectVector
+    resultColumns += selectVector.toIndexedSeq
     resultColumns.toIndexedSeq
   }
 }

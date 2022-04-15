@@ -29,6 +29,7 @@ class Sort protected (
 
   var resultHomogenousColumns : ListBuffer[HomogeneousColumn] = ListBuffer[HomogeneousColumn]()
   var tupleList : ListBuffer[Tuple] = ListBuffer[Tuple]()
+  var resultColumns: ListBuffer[Column] = ListBuffer[Column]()
 
   /**
    * @inheritdoc
@@ -50,7 +51,7 @@ class Sort protected (
           val tmpC = asIterable(c).toIndexedSeq
           t = t :+ tmpC(i)
         }
-        tupleList = tupleList += t
+        tupleList += t
       }
     }
 
@@ -63,12 +64,12 @@ class Sort protected (
       tupleList = tupleList.take(fetch.get)
     }
 
-    // get columns from tuples
-    var resultColumns = ListBuffer[Column]()
+    // initializing resultColumns
     for (i <- columns.indices){
-      resultColumns = resultColumns += IndexedSeq[Elem]()
+      resultColumns += IndexedSeq[Elem]()
     }
 
+    // get columns from tuples
     for (t <- tupleList) {
       for (i <- resultColumns.indices){
         resultColumns(i) = resultColumns(i) :+ t(i)

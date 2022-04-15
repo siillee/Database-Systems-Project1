@@ -39,14 +39,14 @@ class Filter protected (
     columns = columns.dropRight(1)
     // all columns are the same size, so just taking size of the first one
     for (i <- columns(0).indices){
-      var t : Tuple = IndexedSeq[Elem]()
+      var t = ListBuffer[Elem]()
       for (c <- columns) {
-        t = t :+ c(i)
+        t += c(i)
       }
-      if (predicate(t)) {
-        selectVector = selectVector += true
+      if (predicate(t.toIndexedSeq)) {
+        selectVector += true
       }else {
-        selectVector = selectVector += false
+        selectVector += false
       }
     }
 

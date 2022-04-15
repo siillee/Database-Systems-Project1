@@ -63,7 +63,7 @@ class Join(
           val tmpC = asIterable(c).toIndexedSeq
           t = t :+ tmpC(i)
         }
-        leftTuples = leftTuples += t
+        leftTuples += t
       }
     }
     for (i <- 0 until rightInputColumns(0).size) {
@@ -76,7 +76,7 @@ class Join(
           val tmpC = asIterable(c).toIndexedSeq
           t = t :+ tmpC(i)
         }
-        rightTuples = rightTuples += t
+        rightTuples += t
       }
     }
 
@@ -89,29 +89,30 @@ class Join(
       if (map.contains(getKey(t, left = false))) {
         val tmp = map.get(getKey(t, left = false))
         for (tpl <- tmp.get) {
-          finalTupleList = finalTupleList += (tpl ++ t)
+          finalTupleList += (tpl ++ t)
           len = (tpl ++ t).length
         }
       }
     }
 
-    var selectVector = IndexedSeq[Elem]()
+    var selectVector = ListBuffer[Elem]()
     for (t <- finalTupleList){
-      selectVector = selectVector :+ true
+      selectVector += true
     }
 
+    // initializing resultColumns
     for (i <- 0 until len){
-      resultColumns = resultColumns += IndexedSeq[Elem]()
+      resultColumns += IndexedSeq[Elem]()
     }
 
-
+    // get columns from tuples
     for (i <- resultColumns.indices){
       for (t <- finalTupleList) {
         resultColumns(i) = resultColumns(i) :+ t(i)
       }
     }
 
-    resultColumns = resultColumns :+ selectVector
+    resultColumns += selectVector.toIndexedSeq
 
     for (c <- resultColumns){
       resultHomogenousColumns += toHomogeneousColumn(c)

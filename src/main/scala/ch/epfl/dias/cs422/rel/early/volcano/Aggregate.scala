@@ -30,7 +30,7 @@ class Aggregate protected (
     */
 
   var tupleList : ListBuffer[Tuple] = ListBuffer[Tuple]()
-  var resultTuples : ListBuffer[Tuple] = ListBuffer[Tuple]()
+  var resultTuples : List[Tuple] = List[Tuple]()
   val fieldIndices : List[Integer] = groupSet.asScala.toList
   var i : Int = -1
 
@@ -43,7 +43,7 @@ class Aggregate protected (
     // collection of the tuples from input
     var t = input.next()
     while (t.nonEmpty){
-      tupleList = tupleList += t.get
+      tupleList += t.get
       t = input.next()
     }
 
@@ -52,34 +52,32 @@ class Aggregate protected (
       var tmpTuple = ListBuffer[Elem]()
       if (tupleList.isEmpty){
         for (aggCall <- aggCalls) {
-          tmpTuple = tmpTuple :+ aggCall.emptyValue
+          tmpTuple += aggCall.emptyValue
         }
       }else {
         for (aggCall <- aggCalls) {
-          tmpTuple = tmpTuple :+ tupleList.map(t => aggCall.getArgument(t)).reduce((x, y) => aggCall.reduce(x, y))
+          tmpTuple += tupleList.map(t => aggCall.getArgument(t)).reduce((x, y) => aggCall.reduce(x, y))
         }
       }
-      resultTuples += tmpTuple.toIndexedSeq
+      resultTuples = resultTuples :+ tmpTuple.toIndexedSeq
       return
     }
 
-    // grouping of tuples by the groupSet key
-    val grouped = tupleList.groupBy(t => {
+    // grouping of tuples by the groupSet key and applying the aggregates
+    resultTuples = tupleList.groupBy(t => {
       var key = ListBuffer[Elem]()
       for (i <- fieldIndices){
         key = key += t(i)
       }
       key.toList
-    })
-
-    for (kv <- grouped){
+    }).map(kv => {
       var tmpTuple  = ListBuffer[Elem]()
       tmpTuple = tmpTuple ++ kv._1
       for (aggCall <- aggCalls) {
-        tmpTuple = tmpTuple :+ kv._2.map(t => aggCall.getArgument(t)).reduce((x, y) => aggCall.reduce(x ,y))
+        tmpTuple += kv._2.map(t => aggCall.getArgument(t)).reduce((x, y) => aggCall.reduce(x ,y))
       }
-      resultTuples += tmpTuple.toIndexedSeq
-    }
+      tmpTuple.toIndexedSeq
+    }).toList
   }
 
   /**

@@ -43,19 +43,20 @@ class Project protected (
     columns = columns.dropRight(1)
 
     if (columns.isEmpty || columns.head.isEmpty){
-      return (resultColumns :+ IndexedSeq[Column]()).toIndexedSeq
+      return (resultColumns += IndexedSeq[Elem]()).toIndexedSeq
     }
 
+    // get tuples from columns
     for (i <- columns.head.indices) {
-      var t: Tuple = IndexedSeq[Elem]()
+      var t = ListBuffer[Elem]()
       for (c <- columns) {
-        t = t :+ c(i)
+        t += c(i)
       }
-      evaluatedTuples = evaluatedTuples += evaluator(t)
+      evaluatedTuples += evaluator(t.toIndexedSeq)
     }
 
     for (i <- evaluatedTuples.head.indices){
-      resultColumns = resultColumns += IndexedSeq[Elem]()
+      resultColumns += IndexedSeq[Elem]()
     }
 
     for (i <- resultColumns.indices){
@@ -64,7 +65,7 @@ class Project protected (
       }
     }
 
-    resultColumns = resultColumns :+ selectVector
+    resultColumns += selectVector
 
     resultColumns.toIndexedSeq
   }

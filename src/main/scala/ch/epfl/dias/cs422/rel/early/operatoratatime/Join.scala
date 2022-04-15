@@ -54,11 +54,11 @@ class Join(
         if (!leftInputColumns.last(i).asInstanceOf[Boolean]) {
           break
         }
-        var t: Tuple = IndexedSeq[Elem]()
+        var t = ListBuffer[Elem]()
         for (c <- leftInputColumns) {
-          t = t :+ c(i)
+          t += c(i)
         }
-        leftTuples = leftTuples += t
+        leftTuples += t.toIndexedSeq
       }
     }
     for (i <- rightInputColumns(0).indices) {
@@ -66,11 +66,11 @@ class Join(
         if (!rightInputColumns.last(i).asInstanceOf[Boolean]) {
           break
         }
-        var t: Tuple = IndexedSeq[Elem]()
+        var t = ListBuffer[Elem]()
         for (c <- rightInputColumns) {
-          t = t :+ c(i)
+          t += c(i)
         }
-        rightTuples = rightTuples += t
+        rightTuples += t.toIndexedSeq
       }
     }
 
@@ -83,29 +83,30 @@ class Join(
       if (map.contains(getKey(t, left = false))) {
         val tmp = map.get(getKey(t, left = false))
         for (tpl <- tmp.get) {
-          finalTupleList = finalTupleList += (tpl ++ t)
+          finalTupleList += (tpl ++ t)
           len = (tpl ++ t).length
         }
       }
     }
 
-    var selectVector = IndexedSeq[Elem]()
+    var selectVector = ListBuffer[Elem]()
     for (t <- finalTupleList){
-      selectVector = selectVector :+ true
+      selectVector += true
     }
 
+    // initializing resultColumns
     for (i <- 0 until len){
-      resultColumns = resultColumns += IndexedSeq[Elem]()
+      resultColumns += IndexedSeq[Elem]()
     }
 
-
+    // get columns from tuples
     for (i <- resultColumns.indices){
       for (t <- finalTupleList) {
         resultColumns(i) = resultColumns(i) :+ t(i)
       }
     }
 
-    resultColumns = resultColumns :+ selectVector
+    resultColumns += selectVector.toIndexedSeq
     resultColumns.toIndexedSeq
 
   }
@@ -116,11 +117,11 @@ class Join(
     var key = ListBuffer[Elem]()
     if (left) {
       for (i <- leftKeys) {
-        key = key += t(i)
+        key += t(i)
       }
     }else {
       for (i <- rightKeys) {
-        key = key += t(i)
+        key += t(i)
       }
     }
     key.toList

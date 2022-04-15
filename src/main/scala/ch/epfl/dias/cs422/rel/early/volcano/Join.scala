@@ -42,13 +42,13 @@ class Join(
 
     var t = left.next()
     while (t.nonEmpty) {
-      leftTuples = leftTuples += t.get
+      leftTuples += t.get
       t = left.next()
     }
 
     t = right.next()
     while (t.nonEmpty) {
-      rightTuples = rightTuples += t.get
+      rightTuples += t.get
       t = right.next()
     }
 
@@ -58,7 +58,7 @@ class Join(
       if (map.contains(getKey(t, left = false))) {
         val tmp = map.get(getKey(t, left = false))
         for (tpl <- tmp.get) {
-          resultTuples = resultTuples += (tpl ++ t)
+          resultTuples += (tpl ++ t)
         }
       }
     }
@@ -90,11 +90,11 @@ class Join(
     var key = ListBuffer[Elem]()
     if (left) {
       for (i <- leftKeys) {
-        key = key += t(i)
+        key += t(i)
       }
     }else {
       for (i <- rightKeys) {
-        key = key += t(i)
+        key += t(i)
       }
     }
     key.toList

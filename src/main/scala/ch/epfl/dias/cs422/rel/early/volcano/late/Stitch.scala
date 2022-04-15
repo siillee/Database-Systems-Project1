@@ -34,13 +34,13 @@ class Stitch protected(
 
     var t = left.next()
     while (t.nonEmpty) {
-      leftTuples = leftTuples += t.get
+      leftTuples += t.get
       t = left.next()
     }
 
     t = right.next()
     while (t.nonEmpty) {
-      rightTuples = rightTuples += t.get
+      rightTuples += t.get
       t = right.next()
     }
 
@@ -49,7 +49,7 @@ class Stitch protected(
     for (tr <- rightTuples){
       for (tpl <- map(tr.vid)) {
         val newTpl = LateTuple(tr.vid, tpl.value ++ tr.value)
-        resultTuples = resultTuples += newTpl
+        resultTuples += newTpl
       }
     }
   }

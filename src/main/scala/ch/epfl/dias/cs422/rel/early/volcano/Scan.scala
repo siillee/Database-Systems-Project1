@@ -44,7 +44,7 @@ class Scan protected (
   override def next(): Option[Tuple] = {
     i = i + 1
     if (i >= scannableRowStore.getRowCount)
-      return Option.empty[Tuple]
+      return Option.empty
     Option.apply(scannableRowStore.getRow(i))
   }
 

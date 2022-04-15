@@ -35,7 +35,7 @@ class Fetch protected (
 
     var t = input.next()
     while(t.nonEmpty) {
-      tupleList = tupleList += t.get
+      tupleList += t.get
       t = input.next()
     }
 
@@ -54,9 +54,9 @@ class Fetch protected (
     for (t <- tupleList) {
       val elem = Option.apply(clmn(t.vid.toInt))
       if (elem.nonEmpty) {
-        resultTuples = resultTuples += LateTuple(t.vid, t.value ++ elem.get)
+        resultTuples += LateTuple(t.vid, t.value ++ elem.get)
       }else {
-        resultTuples = resultTuples += t
+        resultTuples += t
       }
     }
   }

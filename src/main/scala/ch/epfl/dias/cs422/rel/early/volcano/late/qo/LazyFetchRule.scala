@@ -30,12 +30,6 @@ class LazyFetchRule protected (config: RelRule.Config)
     val first = call.rel[RelNode](1)
     val second = call.rel[LateColumnScan](2)
 
-//    first match {
-//      case project: LogicalProject =>
-//        projects = project.getProjects
-//      case _ =>
-//    }
-
     LogicalFetch.create(first, second.getRowType, second.getColumn, Option.apply(projects), classOf[LogicalFetch])
   }
 }

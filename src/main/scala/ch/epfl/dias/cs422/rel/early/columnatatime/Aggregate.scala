@@ -65,7 +65,7 @@ class Aggregate protected (
           val tmpC = asIterable(c).toIndexedSeq
           t = t :+ tmpC(i)
         }
-        tupleList = tupleList += t
+        tupleList += t
       }
     }
 
@@ -112,12 +112,12 @@ class Aggregate protected (
       selectVector = selectVector :+ true
     }
 
-
+    // initializing resultColumns
     for (i <- 0 until len){
       resultColumns = resultColumns += IndexedSeq[Elem]()
     }
 
-
+    // get columns from tuples
     for (i <- resultColumns.indices){
       for (t <- finalTupleList) {
         resultColumns(i) = resultColumns(i) :+ t(i)

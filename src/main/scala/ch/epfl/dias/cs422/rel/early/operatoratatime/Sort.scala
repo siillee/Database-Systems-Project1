@@ -27,12 +27,15 @@ class Sort protected (
     * sort keys and direction
     */
 
+  var tupleList: ListBuffer[Tuple] = ListBuffer[Tuple]()
+  var resultColumns: ListBuffer[Column] = ListBuffer[Column]()
+
   /**
    * @inheritdoc
    */
   override def execute(): IndexedSeq[Column] = {
 
-    var tupleList = ListBuffer[Tuple]()
+
     val columns = input.execute()
 
     // get tuples from columns
@@ -41,11 +44,11 @@ class Sort protected (
         if (!columns.last(i).asInstanceOf[Boolean]) {
           break
         }
-        var t: Tuple = IndexedSeq[Elem]()
+        var t = ListBuffer[Elem]()
         for (c <- columns) {
-          t = t :+ c(i)
+          t += c(i)
         }
-        tupleList = tupleList += t
+        tupleList += t.toIndexedSeq
       }
     }
 
@@ -59,9 +62,8 @@ class Sort protected (
     }
 
     // get columns from tuples
-    var resultColumns = ListBuffer[Column]()
     for (i <- columns.indices){
-      resultColumns = resultColumns += IndexedSeq[Elem]()
+      resultColumns += IndexedSeq[Elem]()
     }
 
     for (t <- tupleList) {
